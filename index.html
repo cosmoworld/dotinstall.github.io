@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>インタラクティブアート</title>
+  <style>
+  #mycanvas {
+    background: #ecf0f1;
+    cursor: crosshair;
+  }
+  </style>
+</head>
+<body>
+  <canvas id="mycanvas" width="500" height="250">
+    Canvasに対応したブラウザを用意してください。
+  </canvas>
+  <script>
+  (function() {
+    'use strict';
+
+    var ctx;
+    var balls = [];
+
+    var canvas = document.getElementById('mycanvas');
+    if (!canvas || !canvas.getContext) return false;
+    ctx = canvas.getContext('2d');
+
+    var Ball = function(x, y, r) {
+      this.x = x;
+      this.y = y;
+      this.r = r;
+      this.vx = rand(-10, 10);
+      this.vy = rand(-10, 10);
+      this.color = "hsla(120, " +
+        rand( 20, 40) + "%, " +
+        rand( 20, 80) + "%, " +
+        Math.random() +
+      ")";
+      console.log(this.color);
+      this.draw = function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+        ctx.fillStyle = this.color;
+        ctx.closePath();
+        ctx.fill();
+      };
+      this.move = function() {
+        if (this.x + this.r > canvas.width || this.x - this.r < 0) {
+          this.vx *= -1;
+        }
+        if (this.y + this.r > canvas.height || this.y - this.r < 0) {
+          this.vy *= -1;
+        }
+        this.x += this.vx;
+        this.y += this.vy;
+      };
+    };
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function adjustPosition(pos, r, max) {
+      if (pos - r < 0) {
+        return r;
+      } else if (pos + r > max) {
+        return max - r;
+      } else {
+        return pos;
+      }
+    }
+
+    function clearStage() {
+      ctx.fillStyle = '#ecf0f1';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function update() {
+      var i;
+      clearStage();
+      for (i = 0; i < balls.length; i++) {
+        balls[i].draw();
+        balls[i].move();
+      }
+      setTimeout(function() {
+        update();
+      }, 30);
+    }
+
+    canvas.addEventListener('click', function(e) {
+      var rect = e.target.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var r = rand(5, 100);
+      /*
+      if (x - r  < 0) x = r;
+      if (x + r  > canvas.width) x = canvas.width - r;
+      if (y - r  < 0) y = r;
+      if (y + r  > canvas.height) y = canvas.height - r;
+      */
+      x = adjustPosition(x, r, canvas.width);
+      y = adjustPosition(y, r, canvas.height);
+      balls.push(new Ball(x, y, r));
+    });
+
+    update();
+
+  })();
+
+  </script>
+</body>
+</html>
